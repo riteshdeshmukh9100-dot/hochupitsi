@@ -106,40 +106,6 @@
             color: rgba(255, 255, 255, 0.35);
             letter-spacing: 1px;
         }
-
-        /* 🛑 Modern Minimalist Stop Button Style */
-        .stop-btn {
-            background: rgba(255, 99, 99, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 99, 99, 0.2);
-            padding: 10px 24px;
-            border-radius: 30px;
-            color: #ff8585;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(5px);
-        }
-
-        .stop-btn.active {
-            opacity: 1;
-            pointer-events: all;
-            transform: translateY(0);
-        }
-
-        .stop-btn:hover {
-            background: rgba(255, 99, 99, 0.2);
-            border-color: rgba(255, 99, 99, 0.4);
-            color: #fff;
-            box-shadow: 0 10px 25px rgba(255, 99, 99, 0.15);
-        }
     </style>
 </head>
 <body>
@@ -150,8 +116,6 @@
     <div id="uiContainer" class="ui-container">
         <div class="header-box">FOR HOCHUPITSI</div>
         <input type="text" id="searchInput" class="search-box" placeholder="Type anything you want to see..." autofocus>
-        
-        <button id="stopButton" class="stop-btn">Stop Vibe</button>
     </div>
 
     <script>
@@ -159,7 +123,6 @@
 
         const uiContainer = document.getElementById('uiContainer');
         const searchInput = document.getElementById('searchInput');
-        const stopButton = document.getElementById('stopButton');
         const videoA = document.getElementById('videoChannelA');
         const videoB = document.getElementById('videoChannelB');
 
@@ -175,6 +138,9 @@
         let isVideoActive = false;
         let uiFadeTimeout;
         let crossfadeTriggered = false;
+        
+        // 🛠️ Global state pointer to monitor ongoing web requests
+        let currentFetchController = null; 
 
         // --- 🔁 Perfect Endless Seamless Loop System ---
         function handleTimeUpdate(e) {
@@ -208,14 +174,19 @@
 
         // --- 🤖 Dynamic AI API Request Engine ---
         async function fetchDynamicVideo(query) {
-            if (!PEXELS_API_KEY) {
+            if (PEXELS_API_KEY === "" || !PEXELS_API_KEY) {
                 alert("Setup Required: Please insert your free Pexels API Key.");
                 return;
             }
 
+            // Instantiating a distinct cancellation token for this specific execution thread
+            currentFetchController = new AbortController();
+            const signal = currentFetchController.signal;
+
             try {
                 const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=3`, {
-                    headers: { 'Authorization': PEXELS_API_KEY }
+                    headers: { 'Authorization': PEXELS_API_KEY },
+                    signal: signal // Attaching the abort signal token to our HTTP request channel
                 });
 
                 const data = await response.json();
@@ -235,12 +206,22 @@
                 }
 
             } catch (error) {
+                // Catching the deliberate abort error gracefully so it doesn't prompt an annoying error alert window
+                if (error.name === 'AbortError') {
+                    console.log(`%c Dynamic fetch for "${query}" cleanly cancelled by a newer request.`, 'color: #ffb703');
+                    return;
+                }
                 console.error("API Connection Error:", error);
                 alert("Network error connection failed while reaching stock servers.");
+            } finally {
+                // Sanitize memory pointers if this thread finished cleanly without interceptive signals
+                if (currentFetchController?.signal === signal) {
+                    currentFetchController = null;
+                }
             }
         }
 
-        // Core stream loading router
+        // Core dynamic stream loading router
         function runEnvironment(videoStreamUrl) {
             crossfadeTriggered = false;
 
@@ -262,45 +243,15 @@
 
             activeChannel.play().then(() => {
                 isVideoActive = true;
-                stopButton.classList.add('active'); // Reveal stop button
                 startUIFadeTimer();
             }).catch(err => {
                 activeChannel.muted = true;
                 activeChannel.play().then(() => {
                     isVideoActive = true;
-                    stopButton.classList.add('active');
                     startUIFadeTimer();
                 });
             });
         }
-
-        // 🛑 MASTER SHUTDOWN CONTROLLER
-        function stopEnvironment() {
-            isVideoActive = false;
-            clearTimeout(uiFadeTimeout);
-            
-            // Kill playback systems immediately
-            videoA.pause();
-            videoB.pause();
-            videoA.classList.remove('visible');
-            videoB.classList.remove('visible');
-            
-            // Completely scrub video sources to force stop data streaming background tasks
-            videoA.src = "";
-            videoB.src = "";
-            
-            // Restore pristine layout views
-            uiContainer.classList.remove('cinematic-mode');
-            stopButton.classList.remove('active'); // Hide stop button
-            searchInput.value = '';
-            searchInput.focus(); // Pull touch keyboard frame focus back up automatically
-        }
-
-        // Hook up click listener to the physical stop button
-        stopButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Stops touch click events from triggering wake loops instantly
-            stopEnvironment();
-        });
 
         // Interface visibility manager
         function startUIFadeTimer() {
@@ -315,19 +266,11 @@
         }
 
         window.addEventListener('mousemove', startUIFadeTimer);
+        window.addEventListener('keydown', startUIFadeTimer); 
         window.addEventListener('touchstart', startUIFadeTimer); 
         window.addEventListener('click', startUIFadeTimer);      
         searchInput.addEventListener('blur', startUIFadeTimer);
         searchInput.addEventListener('focus', startUIFadeTimer);
-        
-        // ⌨️ Watch for Global Key Presses (Handles Escape and general wake routines)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                stopEnvironment(); // Kill vibe instantly on ESC key press
-            } else {
-                startUIFadeTimer();
-            }
-        }); 
 
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -335,20 +278,20 @@
                 const lowerQuery = query.toLowerCase();
                 
                 if (query.length > 0) {
-                    // Check for manual text stop commands
-                    if (lowerQuery === 'stop' || lowerQuery === 'clear' || lowerQuery === 'reset') {
-                        stopEnvironment();
-                    } else if (localDatabase[lowerQuery]) {
+                    // 🛡️ ABORT TRIGGER: Instantly drops any running network threads before spawning new operations
+                    if (currentFetchController) {
+                        currentFetchController.abort();
+                    }
+
+                    if (localDatabase[lowerQuery]) {
                         runEnvironment(localDatabase[lowerQuery]);
                     } else {
                         fetchDynamicVideo(query);
                     }
                 }
                 
-                if (lowerQuery !== 'stop' && lowerQuery !== 'clear' && lowerQuery !== 'reset') {
-                    searchInput.value = ''; 
-                    searchInput.blur();     
-                }
+                searchInput.value = ''; 
+                searchInput.blur();     
             }
         });
     </script>
