@@ -22,7 +22,6 @@
             align-items: center;
         }
 
-        /* 🎥 Fullscreen Background Video Setup */
         .bg-video {
             position: absolute;
             top: 0;
@@ -39,7 +38,6 @@
             opacity: 1;
         }
 
-        /* 🎛️ User Interface Wrapper */
         .ui-container {
             position: relative;
             z-index: 10;
@@ -52,7 +50,6 @@
             padding: 20px;
         }
 
-        /* 🏷️ Header Style */
         .header-box {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
@@ -69,7 +66,6 @@
             text-align: center;
         }
 
-        /* 🔍 Search Input Box Style */
         .search-box {
             width: 100%;
             background: rgba(10, 15, 30, 0.6);
@@ -126,8 +122,7 @@
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = searchInput.value.toLowerCase().trim();
-                
-                // Hide and pause both videos to switch cleanly
+
                 rainVideo.classList.remove('visible');
                 rainVideo.pause();
                 trainVideo.classList.remove('visible');
@@ -139,7 +134,6 @@
                     rainVideo.classList.add('visible');
                     rainVideo.currentTime = 0; 
                     
-                    // Explicitly unmute the video channel via JavaScript execution
                     rainVideo.muted = false; 
                     
                     rainVideo.play().catch(err => {
@@ -148,8 +142,7 @@
                 } else if (query === 'train') {
                     trainVideo.classList.add('visible');
                     trainVideo.currentTime = 0; 
-                    
-                    // Explicitly unmute the video channel via JavaScript execution
+
                     trainVideo.muted = false; 
                     
                     trainVideo.play().catch(err => {
@@ -158,8 +151,7 @@
                     } else if (query === 'space') {
                     spaceVideo.classList.add('visible');
                     spaceVideo.currentTime = 0; 
-                    
-                    // Explicitly unmute the video channel via JavaScript execution
+n
                     spaceVideo.muted = false; 
                     
                     spaceVideo.play().catch(err => {
