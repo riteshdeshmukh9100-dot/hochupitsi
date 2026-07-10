@@ -67,9 +67,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 25px;
+            gap: 20px;
             width: 100%;
-            max-width: 450px;
+            /* 💡 FIX: Reduced from 450px to 320px to sit perfectly between the cats */
+            max-width: 320px; 
             padding: 20px;
             transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
@@ -82,14 +83,14 @@
 
         /* 🏷️ Header Style */
         .header-box {
-            background: rgba(10, 15, 30, 0.4);
+            background: rgba(10, 15, 30, 0.5);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 12px 30px;
-            border-radius: 15px;
+            padding: 10px 24px;
+            border-radius: 12px;
             color: #fff;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -101,14 +102,15 @@
         /* 🔍 Search Input Box Style */
         .search-box {
             width: 100%;
-            background: rgba(10, 15, 30, 0.6);
+            background: rgba(10, 15, 30, 0.65);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 18px 25px;
+            /* 💡 FIX: Made padding sleeker so it doesn't look bulky vertically */
+            padding: 14px 22px; 
             border-radius: 50px;
             color: #fff;
-            font-size: 16px;
+            font-size: 15px;
             text-align: center;
             outline: none;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
@@ -118,7 +120,7 @@
 
         .search-box:focus {
             border-color: rgba(255, 255, 255, 0.25);
-            background: rgba(10, 15, 30, 0.75);
+            background: rgba(10, 15, 30, 0.8);
             box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255,255,255,0.03);
         }
 
@@ -187,7 +189,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 35px;
             border-radius: 24px;
-            max-width: 400px;
+            max-width: 320px;
             width: 100%;
             text-align: center;
             box-shadow: 0 30px 60px rgba(0,0,0,0.6);
@@ -228,21 +230,17 @@
 </head>
 <body>
 
-    <!-- Reusable Double Buffer Video Channels -->
     <video id="videoChannelA" class="bg-video" playsinline crossorigin="anonymous"></video>
     <video id="videoChannelB" class="bg-video" playsinline crossorigin="anonymous"></video>
 
-    <!-- 🖼️ Line 124: The updated start image layout link -->
     <img id="startImage" class="start-bg visible" src="shunya_phylya.jpg" alt="Cats Backdrop">
 
-    <!-- Main View Controls Container -->
     <div id="uiContainer" class="ui-container">
         <div class="header-box">FOR HOCHUPITSI</div>
         <input type="text" id="searchInput" class="search-box" placeholder="Type anything you want to see..." autofocus>
         <button id="stopButton" class="stop-btn">Stop Vibe</button>
     </div>
 
-    <!-- The Keyless Setup Screen Overlay -->
     <div id="keyModal" class="key-modal">
         <div class="key-card">
             <h3>Pexels Key Activation</h3>
@@ -412,7 +410,7 @@
         // Interface visibility manager
         function startUIFadeTimer() {
             if (!isVideoActive) return; 
-            uiContainer.classList.remove('cinematic-mode');
+            uiContainer.classList.add('cinematic-mode');
             clearTimeout(uiFadeTimeout);
             if (document.activeElement === searchInput) return;
 
