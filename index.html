@@ -101,11 +101,15 @@
 <body>
 
     <video id="rainVideo" class="bg-video" loop playsinline>
-        <source src="174773-852018365_medium.mp4" type="video/mp4">
+        <source src="rain_video1090.mp4" type="video/mp4">
     </video>
 
     <video id="trainVideo" class="bg-video" loop playsinline>
         <source src="356116.mp4" type="video/mp4">
+    </video>
+
+    <video id="spaceVideo" class="bg-video" loop playsinline>
+        <source src="interstellar.mp4" type="video/mp4">
     </video>
 
     <div class="ui-container">
@@ -117,6 +121,7 @@
         const searchInput = document.getElementById('searchInput');
         const rainVideo = document.getElementById('rainVideo');
         const trainVideo = document.getElementById('trainVideo');
+        const trainVideo = document.getElementById('spaceVideo');
 
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -127,6 +132,8 @@
                 rainVideo.pause();
                 trainVideo.classList.remove('visible');
                 trainVideo.pause();
+                spaceVideo.classList.remove('visible');
+                spaceVideo.pause();
 
                 if (query === 'rain') {
                     rainVideo.classList.add('visible');
@@ -146,6 +153,16 @@
                     trainVideo.muted = false; 
                     
                     trainVideo.play().catch(err => {
+                        console.error("Audio playback blocked by browser settings:", err);
+                    });
+                    } else if (query === 'space') {
+                    spaceVideo.classList.add('visible');
+                    spaceVideo.currentTime = 0; 
+                    
+                    // Explicitly unmute the video channel via JavaScript execution
+                    spaceVideo.muted = false; 
+                    
+                    spaceVideo.play().catch(err => {
                         console.error("Audio playback blocked by browser settings:", err);
                     });
                 } else {
