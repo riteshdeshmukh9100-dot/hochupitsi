@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambi - Immersive Video & Soundscape Engine</title>
+    <title>Ambi - Video Soundscape Engine</title>
     <style>
         * {
             margin: 0;
@@ -17,55 +17,62 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
-        /* Fullscreen Video Layers */
+        /* 🎥 Fullscreen Background Video Setup */
         .bg-video {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Forces video to cover screen without stretching */
-            z-index: 1;        /* Sits at the very bottom */
-            opacity: 0;        /* Hidden by default */
-            transition: opacity 1.5s ease; /* Smooth crossfade effect */
+            object-fit: cover; /* Ensures video fills screen perfectly without stretching */
+            z-index: 1;        /* Placed completely in the background */
+            opacity: 0;        /* Hidden completely at start */
+            transition: opacity 1.5s ease; /* Smooth cinematic fade-in transition */
         }
 
         .bg-video.visible {
-            opacity: 0.6;      /* Kept at 0.6 opacity to blend beautifully with dark canvas */
+            opacity: 1;        /* Full clear visibility when active */
         }
 
-        /* Interactive Particle Canvas */
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;        /* Sits directly on top of the video */
-            pointer-events: none; /* Allows mouse interactions to pass through if needed */
-        }
-
-        /* App Interface Container */
+        /* 🎛️ User Interface Wrapper */
         .ui-container {
             position: relative;
-            z-index: 10;       /* Sits on top of everything else */
+            z-index: 10;       /* Sits safely on top of the videos */
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
+            gap: 25px;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             padding: 20px;
         }
 
-        /* Global Search Bar Style */
+        /* 🏷️ Header Style */
+        .header-box {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 30px;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        /* 🔍 Search Input Box Style */
         .search-box {
             width: 100%;
-            background: rgba(10, 15, 30, 0.4);
+            background: rgba(10, 15, 30, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -80,66 +87,14 @@
         }
 
         .search-box:focus {
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(10, 15, 30, 0.75);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255,255,255,0.03);
         }
 
         .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.35);
             letter-spacing: 1px;
-        }
-
-        /* Atmosphere Controls */
-        .controls {
-            background: rgba(10, 15, 30, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 20px 40px;
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(20px);
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            width: 100%;
-        }
-
-        .controls.active {
-            opacity: 1;
-            pointer-events: all;
-            transform: translateY(0);
-        }
-
-        .controls label {
-            color: #fff;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            opacity: 0.7;
-        }
-
-        .slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            outline: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
         }
     </style>
 </head>
@@ -153,186 +108,46 @@
         <source src="356116.mp4" type="video/mp4">
     </video>
 
-    <canvas id="ambiCanvas"></canvas>
-
     <div class="ui-container">
-        <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain' or 'train'..." autofocus>
+        <div class="header-box">FOR HOCHUPITSI</div>
         
-        <div id="controlPanel" class="controls">
-            <label for="colorSlider">Shift Atmosphere</label>
-            <input type="range" id="colorSlider" class="slider" min="0" max="360" value="200">
-        </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain' or 'train'..." autofocus>
     </div>
 
     <script>
-        const canvas = document.getElementById('ambiCanvas');
-        const ctx = canvas.getContext('2d');
         const searchInput = document.getElementById('searchInput');
-        const controlPanel = document.getElementById('controlPanel');
-        const colorSlider = document.getElementById('colorSlider');
-
-        // Grab video elements from HTML
         const rainVideo = document.getElementById('rainVideo');
         const trainVideo = document.getElementById('trainVideo');
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // State Machine
-        let activeEnvironment = 'none'; 
-        let currentHue = colorSlider.value;
-        let particles = [];
-        let secondaryParticles = []; 
-
-        colorSlider.addEventListener('input', (e) => {
-            currentHue = e.target.value;
-        });
-
-        // Search Input Trigger
+        // Listen for search submission
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = searchInput.value.toLowerCase().trim();
-                if (query === 'rain' || query === 'train') {
-                    activeEnvironment = query;
-                    controlPanel.classList.add('active'); 
-                    initEnvironment();
+                
+                // 1. Instantly hide and pause both videos to switch cleanly
+                rainVideo.classList.remove('visible');
+                rainVideo.pause();
+                trainVideo.classList.remove('visible');
+                trainVideo.pause();
+
+                // 2. Route the search term to the correct video
+                if (query === 'rain') {
+                    rainVideo.classList.add('visible');
+                    rainVideo.currentTime = 0; // Rewind video to start
+                    rainVideo.play().catch(err => {
+                        console.error("Autoplay restriction encountered:", err);
+                    });
+                } else if (query === 'train') {
+                    trainVideo.classList.add('visible');
+                    trainVideo.currentTime = 0; // Rewind video to start
+                    trainVideo.play().catch(err => {
+                        console.error("Autoplay restriction encountered:", err);
+                    });
                 } else {
-                    alert("Try typing 'rain' or 'train' to start the system.");
+                    alert("Please type either 'rain' or 'train'.");
                 }
             }
         });
-
-        // --- Rain Particle Classes ---
-        class RainDrop {
-            constructor() { this.reset(); this.y = Math.random() * canvas.height; }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = -20;
-                this.length = Math.random() * 25 + 15;
-                this.speed = Math.random() * 12 + 12;
-                this.opacity = Math.random() * 0.25 + 0.05;
-            }
-            update() {
-                this.y += this.speed;
-                if (this.y > canvas.height) {
-                    for (let i = 0; i < 3; i++) secondaryParticles.push(new RainSplash(this.x, canvas.height));
-                    this.reset();
-                }
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.strokeStyle = `hsla(${currentHue}, 75%, 65%, ${this.opacity})`;
-                ctx.lineWidth = 1.2;
-                ctx.moveTo(this.x, this.y);
-                ctx.lineTo(this.x, this.y + this.length);
-                ctx.stroke();
-            }
-        }
-
-        class RainSplash {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.vx = (Math.random() - 0.5) * 4;
-                this.vy = -Math.random() * 3 - 1;
-                this.alpha = 1;
-                this.decay = Math.random() * 0.05 + 0.02;
-            }
-            update() { this.x += this.vx; this.y += this.vy; this.vy += 0.1; this.alpha -= this.decay; }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 1, 0, Math.PI * 2);
-                ctx.fillStyle = `hsla(${currentHue}, 80%, 70%, ${this.alpha})`;
-                ctx.fill();
-            }
-        }
-
-        // --- Train Window Particle Class ---
-        class TrainStreak {
-            constructor() { this.reset(); this.x = Math.random() * canvas.width; }
-            reset() {
-                this.x = canvas.width + Math.random() * 100; 
-                this.y = Math.random() * canvas.height;
-                this.length = Math.random() * 80 + 40;        
-                this.speed = Math.random() * 20 + 15;        
-                this.opacity = Math.random() * 0.15 + 0.03;
-            }
-            update() {
-                this.x -= this.speed; 
-                if (this.x + this.length < 0) this.reset();
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.strokeStyle = `hsla(${currentHue}, 85%, 60%, ${this.opacity})`;
-                ctx.lineWidth = Math.random() * 2 + 1;
-                ctx.moveTo(this.x, this.y);
-                ctx.lineTo(this.x + this.length, this.y);
-                ctx.stroke();
-            }
-        }
-
-        // Reset and trigger videos/particles based on input
-        function initEnvironment() {
-            particles = [];
-            secondaryParticles = [];
-
-            // 1. Reset all videos to hidden & paused state first
-            rainVideo.classList.remove('visible');
-            rainVideo.pause();
-            trainVideo.classList.remove('visible');
-            trainVideo.pause();
-            
-            // 2. Activate the searched asset path
-            if (activeEnvironment === 'rain') {
-                rainVideo.classList.add('visible');
-                rainVideo.play().catch(err => console.log("Video play interrupted or requires user gesture settings"));
-                
-                let count = 140;
-                for (let i = 0; i < count; i++) particles.push(new RainDrop());
-
-            } else if (activeEnvironment === 'train') {
-                trainVideo.classList.add('visible');
-                trainVideo.play().catch(err => console.log("Video play interrupted or requires user gesture settings"));
-                
-                let count = 60;
-                for (let i = 0; i < count; i++) particles.push(new TrainStreak());
-            }
-        }
-
-        // Global Canvas Render Loop
-        function animate() {
-            if (activeEnvironment !== 'none') {
-                const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 10, canvas.width/2, canvas.height/2, canvas.width);
-                // Keeping transparency (0.3 opacity) allows the background video layers underneath to show through clearly
-                gradient.addColorStop(0, `hsla(${currentHue}, 20%, 8%, 0.3)`);
-                gradient.addColorStop(1, 'rgba(5, 7, 12, 0.3)');
-                ctx.fillStyle = gradient;
-            } else {
-                ctx.fillStyle = '#070a12'; 
-            }
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-            }
-
-            for (let i = secondaryParticles.length - 1; i >= 0; i--) {
-                secondaryParticles[i].update();
-                if (secondaryParticles[i].alpha <= 0) {
-                    secondaryParticles.splice(i, 1);
-                } else {
-                    secondaryParticles[i].draw();
-                }
-            }
-
-            requestAnimationFrame(animate);
-        }
-
-        animate();
     </script>
 </body>
 </html>
