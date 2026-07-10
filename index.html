@@ -23,6 +23,7 @@
             touch-action: manipulation; 
         }
 
+        /* 🎥 Reusable Double Buffer Video Channels */
         .bg-video {
             position: absolute;
             top: 0;
@@ -32,13 +33,14 @@
             object-fit: cover;
             z-index: 1;
             opacity: 0;
-            transition: opacity 1.5s ease;
+            transition: opacity 0.5s linear; 
         }
 
         .bg-video.visible {
             opacity: 1;
         }
 
+        /* 🎛️ User Interface Wrapper */
         .ui-container {
             position: relative;
             z-index: 10;
@@ -54,10 +56,11 @@
 
         .ui-container.cinematic-mode {
             opacity: 0;
-            pointer-events: none;
+            pointer-events: none; 
             transform: translateY(15px);
         }
 
+        /* 🏷️ Header Style */
         .header-box {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
@@ -75,6 +78,7 @@
             user-select: none;
         }
 
+        /* 🔍 Search Input Box Style */
         .search-box {
             width: 100%;
             background: rgba(10, 15, 30, 0.6);
@@ -89,7 +93,7 @@
             outline: none;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             transition: all 0.4s ease;
-            -webkit-appearance: none;
+            -webkit-appearance: none; 
         }
 
         .search-box:focus {
@@ -106,60 +110,139 @@
 </head>
 <body>
 
-    <video id="rainVideo" class="bg-video" loop playsinline>
-        <source src="rain_video1090.mp4" type="video/mp4">
-    </video>
-
-    <video id="trainVideo" class="bg-video" loop playsinline>
-        <source src="356116.mp4" type="video/mp4">
-    </video>
-
-    <video id="spaceVideo" class="bg-video" loop playsinline>
-        <source src="interstellar.mp4" type="video/mp4">
-    </video>
+    <video id="videoChannelA" class="bg-video" playsinline crossorigin="anonymous"></video>
+    <video id="videoChannelB" class="bg-video" playsinline crossorigin="anonymous"></video>
 
     <div id="uiContainer" class="ui-container">
         <div class="header-box">FOR HOCHUPITSI</div>
-        <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain', 'train', or 'space'..." autofocus>
+        <input type="text" id="searchInput" class="search-box" placeholder="Type anything you want to see..." autofocus>
     </div>
 
     <script>
+        // 🔑 Kept your verified Pexels Key intact
+        const PEXELS_API_KEY = "Y284hGioTJ3wn6n1dHtkYKy05rryaRtxu2x0zeACAGRJJcWQi1G2CZvd"; 
+
         const uiContainer = document.getElementById('uiContainer');
         const searchInput = document.getElementById('searchInput');
-        const rainVideo = document.getElementById('rainVideo');
-        const trainVideo = document.getElementById('trainVideo');
-        const spaceVideo = document.getElementById('spaceVideo');
+        const videoA = document.getElementById('videoChannelA');
+        const videoB = document.getElementById('videoChannelB');
 
+        // 🏠 💡 BACK BY POPULAR DEMAND: Your classic local video files mapping database
+        const localDatabase = {
+            'rain': 'rain_video1090.mp4',
+            'train': '356116.mp4',
+            'space': 'interstellar.mp4'
+        };
+
+        let activeChannel = videoA;
+        let bufferChannel = videoB;
+        
         let isVideoActive = false;
         let uiFadeTimeout;
+        let crossfadeTriggered = false;
 
-        function launchEnvironment(videoElement, videoFileName) {
-            videoElement.classList.add('visible');
-            videoElement.currentTime = 0; 
-            videoElement.muted = false; 
-            
-            videoElement.play().then(() => {
+        // --- 🔁 Perfect Endless Seamless Loop System ---
+        function handleTimeUpdate(e) {
+            const vid = e.target;
+            if (vid !== activeChannel || !vid.duration) return;
+
+            // Pre-trigger the buffer 0.6s before video completion to mask engine lag completely
+            if (vid.currentTime > vid.duration - 0.6 && !crossfadeTriggered) {
+                crossfadeTriggered = true;
+                
+                bufferChannel.currentTime = 0;
+                bufferChannel.muted = false;
+                
+                bufferChannel.play().then(() => {
+                    activeChannel.classList.remove('visible');
+                    bufferChannel.classList.add('visible');
+
+                    let temp = activeChannel;
+                    activeChannel = bufferChannel;
+                    bufferChannel = temp;
+
+                    bufferChannel.pause();
+                    crossfadeTriggered = false;
+                }).catch(() => {
+                    crossfadeTriggered = false;
+                });
+            }
+        }
+
+        videoA.addEventListener('timeupdate', handleTimeUpdate);
+        videoB.addEventListener('timeupdate', handleTimeUpdate);
+
+        // --- 🤖 Dynamic AI API Request Engine ---
+        async function fetchDynamicVideo(query) {
+            if (!PEXELS_API_KEY) {
+                alert("Setup Required: Please insert your free Pexels API Key.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=3`, {
+                    headers: { 'Authorization': PEXELS_API_KEY }
+                });
+
+                const data = await response.json();
+
+                if (!data.videos || data.videos.length === 0) {
+                    alert(`Vibe check failed: Could not find any videos matching "${query}". Try another description!`);
+                    return;
+                }
+
+                const videoData = data.videos[0];
+                const matchingFile = videoData.video_files.find(f => f.file_type === 'video/mp4' && f.quality === 'hd') || videoData.video_files[0];
+
+                if (matchingFile && matchingFile.link) {
+                    runEnvironment(matchingFile.link);
+                } else {
+                    alert("Could not extract a valid stream format file for this query.");
+                }
+
+            } catch (error) {
+                console.error("API Connection Error:", error);
+                alert("Network error connection failed while reaching stock servers.");
+            }
+        }
+
+        // Core stream loading router (Works smoothly for both local assets and internet URLs!)
+        function runEnvironment(videoStreamUrl) {
+            crossfadeTriggered = false;
+
+            videoA.pause();
+            videoB.pause();
+            videoA.classList.remove('visible');
+            videoB.classList.remove('visible');
+
+            videoA.src = videoStreamUrl;
+            videoB.src = videoStreamUrl;
+            videoA.load();
+            videoB.load();
+
+            activeChannel = videoA;
+            bufferChannel = videoB;
+
+            activeChannel.classList.add('visible');
+            activeChannel.muted = false;
+
+            activeChannel.play().then(() => {
                 isVideoActive = true;
-                startUIFadeTimer(); 
+                startUIFadeTimer();
             }).catch(err => {
-                console.warn("Audio blocked. Playing muted fallback.", err);
-                videoElement.muted = true;
-                videoElement.play().then(() => {
+                activeChannel.muted = true;
+                activeChannel.play().then(() => {
                     isVideoActive = true;
                     startUIFadeTimer();
-                }).catch(mediaErr => {
-                    alert(`File Error: Cannot play "${videoFileName}".`);
                 });
             });
         }
 
+        // Interface visibility manager
         function startUIFadeTimer() {
             if (!isVideoActive) return; 
-
             uiContainer.classList.remove('cinematic-mode');
-
             clearTimeout(uiFadeTimeout);
-
             if (document.activeElement === searchInput) return;
 
             uiFadeTimeout = setTimeout(() => {
@@ -167,35 +250,30 @@
             }, 3000);
         }
 
-        window.addEventListener('mousemove', startUIFadeTimer); 
-        window.addEventListener('keydown', startUIFadeTimer);   
+        window.addEventListener('mousemove', startUIFadeTimer);
+        window.addEventListener('keydown', startUIFadeTimer); 
         window.addEventListener('touchstart', startUIFadeTimer); 
-        window.addEventListener('click', startUIFadeTimer);     
-
+        window.addEventListener('click', startUIFadeTimer);      
         searchInput.addEventListener('blur', startUIFadeTimer);
         searchInput.addEventListener('focus', startUIFadeTimer);
 
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const query = searchInput.value.toLowerCase().trim();
+                const query = searchInput.value.trim();
+                const lowerQuery = query.toLowerCase();
                 
-                [rainVideo, trainVideo, spaceVideo].forEach(video => {
-                    video.classList.remove('visible');
-                    video.pause();
-                });
-
-                if (query === 'rain') {
-                    launchEnvironment(rainVideo, 'rain_video1090.mp4');
-                } else if (query === 'train') {
-                    launchEnvironment(trainVideo, '356116.mp4');
-                } else if (query === 'space') {
-                    launchEnvironment(spaceVideo, 'interstellar.mp4');
-                } else {
-                    alert("Please type 'rain', 'train', or 'space'.");
+                if (query.length > 0) {
+                    // 💡 THE SMART ROUTER: Checks if it's one of your original favorites first!
+                    if (localDatabase[lowerQuery]) {
+                        runEnvironment(localDatabase[lowerQuery]);
+                    } else {
+                        // Otherwise, search the web database dynamically
+                        fetchDynamicVideo(query);
+                    }
                 }
                 
                 searchInput.value = ''; 
-                searchInput.blur();    
+                searchInput.blur();     
             }
         });
     </script>
