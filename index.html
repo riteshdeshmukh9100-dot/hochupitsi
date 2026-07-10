@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambi - Video Soundscape Engine</title>
+    <title>HOCHUPITSI</title>
     <style>
         * {
             margin: 0;
@@ -29,20 +29,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Ensures video fills screen perfectly without stretching */
-            z-index: 1;        /* Placed completely in the background */
-            opacity: 0;        /* Hidden completely at start */
-            transition: opacity 1.5s ease; /* Smooth cinematic fade-in transition */
+            object-fit: cover;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
 
         .bg-video.visible {
-            opacity: 1;        /* Full clear visibility when active */
+            opacity: 1;
         }
 
         /* 🎛️ User Interface Wrapper */
         .ui-container {
             position: relative;
-            z-index: 10;       /* Sits safely on top of the videos */
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -100,17 +100,16 @@
 </head>
 <body>
 
-    <video id="rainVideo" class="bg-video" loop muted playsinline>
+    <video id="rainVideo" class="bg-video" loop playsinline>
         <source src="174773-852018365_medium.mp4" type="video/mp4">
     </video>
 
-    <video id="trainVideo" class="bg-video" loop muted playsinline>
+    <video id="trainVideo" class="bg-video" loop playsinline>
         <source src="356116.mp4" type="video/mp4">
     </video>
 
     <div class="ui-container">
         <div class="header-box">FOR HOCHUPITSI</div>
-        
         <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain' or 'train'..." autofocus>
     </div>
 
@@ -119,29 +118,35 @@
         const rainVideo = document.getElementById('rainVideo');
         const trainVideo = document.getElementById('trainVideo');
 
-        // Listen for search submission
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = searchInput.value.toLowerCase().trim();
                 
-                // 1. Instantly hide and pause both videos to switch cleanly
+                // Hide and pause both videos to switch cleanly
                 rainVideo.classList.remove('visible');
                 rainVideo.pause();
                 trainVideo.classList.remove('visible');
                 trainVideo.pause();
 
-                // 2. Route the search term to the correct video
                 if (query === 'rain') {
                     rainVideo.classList.add('visible');
-                    rainVideo.currentTime = 0; // Rewind video to start
+                    rainVideo.currentTime = 0; 
+                    
+                    // Explicitly unmute the video channel via JavaScript execution
+                    rainVideo.muted = false; 
+                    
                     rainVideo.play().catch(err => {
-                        console.error("Autoplay restriction encountered:", err);
+                        console.error("Audio playback blocked by browser settings:", err);
                     });
                 } else if (query === 'train') {
                     trainVideo.classList.add('visible');
-                    trainVideo.currentTime = 0; // Rewind video to start
+                    trainVideo.currentTime = 0; 
+                    
+                    // Explicitly unmute the video channel via JavaScript execution
+                    trainVideo.muted = false; 
+                    
                     trainVideo.play().catch(err => {
-                        console.error("Autoplay restriction encountered:", err);
+                        console.error("Audio playback blocked by browser settings:", err);
                     });
                 } else {
                     alert("Please type either 'rain' or 'train'.");
