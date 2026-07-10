@@ -20,6 +20,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            touch-action: manipulation; 
         }
 
         .bg-video {
@@ -48,6 +49,13 @@
             width: 100%;
             max-width: 450px;
             padding: 20px;
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .ui-container.cinematic-mode {
+            opacity: 0;
+            pointer-events: none; /* Disables clicks when invisible */
+            transform: translateY(15px);
         }
 
         .header-box {
@@ -64,6 +72,7 @@
             text-transform: uppercase;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             text-align: center;
+            user-select: none;
         }
 
         .search-box {
@@ -80,6 +89,7 @@
             outline: none;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             transition: all 0.4s ease;
+            -webkit-appearance: none;
         }
 
         .search-box:focus {
@@ -108,58 +118,84 @@
         <source src="interstellar.mp4" type="video/mp4">
     </video>
 
-    <div class="ui-container">
+    <div id="uiContainer" class="ui-container">
         <div class="header-box">FOR HOCHUPITSI</div>
-        <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain' or 'train'..." autofocus>
+        <input type="text" id="searchInput" class="search-box" placeholder="Type 'rain', 'train', or 'space'..." autofocus>
     </div>
 
     <script>
+        const uiContainer = document.getElementById('uiContainer');
         const searchInput = document.getElementById('searchInput');
         const rainVideo = document.getElementById('rainVideo');
         const trainVideo = document.getElementById('trainVideo');
         const spaceVideo = document.getElementById('spaceVideo');
 
+        let isVideoActive = false;
+        let uiFadeTimeout;
+
+        function launchEnvironment(videoElement, videoFileName) {
+            videoElement.classList.add('visible');
+            videoElement.currentTime = 0; 
+            videoElement.muted = false; 
+            
+            videoElement.play().then(() => {
+                isVideoActive = true;
+                startUIFadeTimer(); 
+            }).catch(err => {
+                console.warn("Audio blocked. Playing muted fallback.", err);
+                videoElement.muted = true;
+                videoElement.play().then(() => {
+                    isVideoActive = true;
+                    startUIFadeTimer();
+                }).catch(mediaErr => {
+                    alert(`File Error: Cannot play "${videoFileName}".`);
+                });
+            });
+        }
+
+        function startUIFadeTimer() {
+            if (!isVideoActive) return; 
+
+            uiContainer.classList.remove('cinematic-mode');
+
+            clearTimeout(uiFadeTimeout);
+
+            if (document.activeElement === searchInput) return;
+
+            uiFadeTimeout = setTimeout(() => {
+                uiContainer.classList.add('cinematic-mode');
+            }, 10000);
+        }
+
+        window.addEventListener('mousemove', startUIFadeTimer); 
+        window.addEventListener('keydown', startUIFadeTimer);   
+        window.addEventListener('touchstart', startUIFadeTimer); 
+        window.addEventListener('click', startUIFadeTimer);     
+
+        searchInput.addEventListener('blur', startUIFadeTimer);
+        searchInput.addEventListener('focus', startUIFadeTimer);
+
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = searchInput.value.toLowerCase().trim();
-
-                rainVideo.classList.remove('visible');
-                rainVideo.pause();
-                trainVideo.classList.remove('visible');
-                trainVideo.pause();
-                spaceVideo.classList.remove('visible');
-                spaceVideo.pause();
+                
+                [rainVideo, trainVideo, spaceVideo].forEach(video => {
+                    video.classList.remove('visible');
+                    video.pause();
+                });
 
                 if (query === 'rain') {
-                    rainVideo.classList.add('visible');
-                    rainVideo.currentTime = 0; 
-                    
-                    rainVideo.muted = false; 
-                    
-                    rainVideo.play().catch(err => {
-                        console.error("Audio playback blocked by browser settings:", err);
-                    });
+                    launchEnvironment(rainVideo, 'rain_video1090.mp4');
                 } else if (query === 'train') {
-                    trainVideo.classList.add('visible');
-                    trainVideo.currentTime = 0; 
-
-                    trainVideo.muted = false; 
-                    
-                    trainVideo.play().catch(err => {
-                        console.error("Audio playback blocked by browser settings:", err);
-                    });
-                    } else if (query === 'space') {
-                    spaceVideo.classList.add('visible');
-                    spaceVideo.currentTime = 0; 
-n
-                    spaceVideo.muted = false; 
-                    
-                    spaceVideo.play().catch(err => {
-                        console.error("Audio playback blocked by browser settings:", err);
-                    });
+                    launchEnvironment(trainVideo, '356116.mp4');
+                } else if (query === 'space') {
+                    launchEnvironment(spaceVideo, 'interstellar.mp4');
                 } else {
-                    alert("Please type either 'rain' or 'train'.");
+                    alert("Please type 'rain', 'train', or 'space'.");
                 }
+                
+                searchInput.value = ''; 
+                searchInput.blur();    
             }
         });
     </script>
