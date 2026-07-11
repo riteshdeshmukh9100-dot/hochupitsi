@@ -175,7 +175,6 @@
     </div>
 
     <script>
-        // 🔑 Key hardcoded directly back into the application source
         const PEXELS_API_KEY = "Y284hGioTJ3wn6n1dHtkYKy05rryaRtxu2x0zeACAGRJJcWQi1G2CZvd"; 
 
         const uiContainer = document.getElementById('uiContainer');
@@ -328,7 +327,10 @@
         // Interface visibility manager
         function startUIFadeTimer() {
             if (!isVideoActive) return; 
-            uiContainer.classList.add('cinematic-mode');
+            
+            // 💡 FIXED: Safely brings back visibility by removing cinematic-mode instantly on wake!
+            uiContainer.classList.remove('cinematic-mode'); 
+            
             clearTimeout(uiFadeTimeout);
             if (document.activeElement === searchInput) return;
 
